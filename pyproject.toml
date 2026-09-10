@@ -1,0 +1,84 @@
+[tool.poetry]
+name = "lacrei-saude-api"
+version = "0.1.0"
+description = "API RESTful de Gerenciamento de Consultas Médicas — Lacrei Saúde"
+authors = ["Hermann"]
+readme = "README.md"
+packages = [{include = "lacrei_saude"}, {include = "apps"}, {include = "core"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^5.1"
+djangorestframework = "^3.15"
+djangorestframework-simplejwt = "^5.3"
+django-cors-headers = "^4.4"
+django-filter = "^24.3"
+drf-spectacular = "^0.27"
+bleach = "^6.1"
+psycopg = {version = "^3.2", extras = ["binary"]}
+gunicorn = "^22.0"
+python-decouple = "^3.8"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.6"
+pytest = "^8.3"
+pytest-django = "^4.8"
+pytest-cov = "^5.0"
+factory-boy = "^3.3"
+model-bakery = "^1.18"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+src = ["apps", "core", "lacrei_saude"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "S",    # bandit (segurança)
+    "B",    # bugbear
+    "A",    # builtins shadowing
+    "C4",   # comprehensions
+    "DTZ",  # datetime timezone
+    "DJ",   # django-specific
+    "RUF",  # ruff-specific
+]
+ignore = [
+    "S101",    # Permitir assert em testes
+    "RUF012",  # Permitir atributos de classe mutáveis (padrão Django/DRF)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"*/migrations/*" = ["E501"]  # Migrações geradas pelo Django podem ter linhas longas
+
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "core", "lacrei_saude"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "lacrei_saude.settings.local"
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short --strict-markers"
+
+[tool.coverage.run]
+source = ["apps", "core"]
+omit = ["*/tests/*", "*/migrations/*", "*/__init__.py"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true

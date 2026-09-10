@@ -1,0 +1,12 @@
+.git
+.env*
+.venv/
+.agents/
+.pytest_cache/
+.ruff_cache/
+staticfiles/
+__pycache__/
+*.pyc
+*.log
+.coverage
+htmlcov/
