@@ -1,3 +1,8 @@
+# ⚠️ IMPORTANTE: Este pipeline é um TEMPLATE funcional.
+# Os jobs de deploy contêm placeholders que devem ser configurados
+# com credenciais AWS reais antes da ativação em produção.
+# Veja docs/ROLLBACK.md para o fluxo completo de deploy Blue/Green.
+
 name: CD — Build & Deploy
 
 on:

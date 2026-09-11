@@ -30,8 +30,15 @@ except Exception:
     sleep 2
 done
 
-echo "🔄 Executando migrations..."
-python manage.py migrate --noinput
+# Migrations controladas por variável de ambiente.
+# Em ambientes com múltiplas réplicas ou Blue/Green, as migrations
+# devem ser executadas em um job/init-container separado.
+if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
+    echo "🔄 Executando migrations..."
+    python manage.py migrate --noinput
+else
+    echo "⏭️  Migrations desabilitadas (RUN_MIGRATIONS=${RUN_MIGRATIONS})"
+fi
 
 echo "🚀 Iniciando aplicação..."
 exec "$@"
