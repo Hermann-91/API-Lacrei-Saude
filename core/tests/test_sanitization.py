@@ -56,3 +56,69 @@ def test_sanitization_middleware_form_data():
     middleware(request)
 
     assert request.POST["motivo"] == "Dor de cabeça evil()"
+
+
+def test_sanitization_middleware_bypass_rotas_auth():
+    """Garante que requisições para /api/v1/auth/* não sofrem alteração nos corpos."""
+    factory = RequestFactory()
+    payload = {
+        "username": "usuario_dr",
+        "password": "Senha<Complexa>&123!#=",
+    }
+    body_bytes = json.dumps(payload).encode("utf-8")
+    request = factory.post(
+        "/api/v1/auth/token/",
+        data=body_bytes,
+        content_type="application/json",
+    )
+
+    middleware = SanitizationMiddleware(dummy_response)
+    middleware(request)
+
+    res = json.loads(request.body.decode("utf-8"))
+    assert res["password"] == "Senha<Complexa>&123!#="
+    assert res["username"] == "usuario_dr"
+
+
+def test_sanitization_middleware_preserva_campos_password_em_outras_rotas():
+    """Garante que o campo password é mantido mesmo quando outros campos sofrem sanitização."""
+    factory = RequestFactory()
+    payload = {
+        "nome": "Administrador <script>alert(1)</script>",
+        "password": "Senha<Complexa>&123!#=",
+        "confirm_password": "Senha<Complexa>&123!#=",
+    }
+    body_bytes = json.dumps(payload).encode("utf-8")
+    request = factory.post(
+        "/api/v1/usuarios/",
+        data=body_bytes,
+        content_type="application/json",
+    )
+
+    middleware = SanitizationMiddleware(dummy_response)
+    middleware(request)
+
+    res = json.loads(request.body.decode("utf-8"))
+    assert res["nome"] == "Administrador alert(1)"
+    assert res["password"] == "Senha<Complexa>&123!#="
+    assert res["confirm_password"] == "Senha<Complexa>&123!#="
+
+
+def test_sanitization_middleware_preserva_campos_password_em_form_data():
+    """Garante que campos de senha em form-data não sofrem alteração pelo middleware."""
+    factory = RequestFactory()
+    request = factory.post(
+        "/api/v1/usuarios/",
+        data={
+            "nome": "Admin <script>alert(1)</script>",
+            "password": "Senha<Complexa>&123!#=",
+            "senha": "Outra<Senha>&99",
+        },
+    )
+    middleware = SanitizationMiddleware(lambda req: None)
+    middleware(request)
+
+    assert request.POST["nome"] == "Admin alert(1)"
+    assert request.POST["password"] == "Senha<Complexa>&123!#="
+    assert request.POST["senha"] == "Outra<Senha>&99"
+
