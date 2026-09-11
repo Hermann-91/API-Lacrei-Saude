@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from apps.consultas.filters import ConsultaFilter
 from apps.consultas.serializers import ConsultaSerializer
 
 from .filters import ProfissionalFilter
@@ -34,8 +35,8 @@ class ProfissionalViewSet(viewsets.ModelViewSet):
     """
     ViewSet para gerenciamento completo de Profissionais de Saúde.
 
-    Apenas profissionais com 'ativo=True' são listados e manipulados.
-    A exclusão realiza soft-delete via campo 'ativo'.
+    Apenas profissionais com 'ativo=True' são listados (via SoftDeleteManager).
+    A exclusão realiza soft-delete via SoftDeleteModel.delete().
     """
 
     serializer_class = ProfissionalSerializer
@@ -46,28 +47,33 @@ class ProfissionalViewSet(viewsets.ModelViewSet):
     ordering = ["-criado_em"]
 
     def get_queryset(self):
-        """Retorna apenas profissionais ativos."""
-        return Profissional.objects.filter(ativo=True)
+        """Retorna apenas profissionais ativos (SoftDeleteManager filtra automaticamente)."""
+        return Profissional.objects.all()
 
     def destroy(self, request: Request, *args, **kwargs) -> Response:
-        """Soft-delete: inativa o profissional sem remoção física do banco."""
+        """Soft-delete: inativa o profissional via SoftDeleteModel.soft_delete()."""
         profissional = self.get_object()
-        profissional.ativo = False
-        profissional.save(update_fields=["ativo", "atualizado_em"])
+        profissional.soft_delete()  # SoftDeleteModel.soft_delete() → ativo=False
         logger.info("Profissional inativado (soft-delete): %s", profissional.id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
         summary="Listar consultas do profissional",
-        description="Retorna lista paginada de consultas médicas vinculadas a este profissional.",
+        description="Retorna lista paginada e filtrável de consultas médicas vinculadas a este profissional.",
         responses={200: ConsultaSerializer(many=True)},
         tags=["Profissionais"],
     )
     @action(detail=True, methods=["get"], url_path="consultas")
     def consultas(self, request: Request, pk=None) -> Response:
-        """Lista histórico de consultas do profissional com paginação."""
+        """Lista histórico de consultas do profissional com paginação e filtros."""
         profissional = self.get_object()
         consultas = profissional.consultas.select_related("profissional").all().order_by("-data_hora")
+
+        # A6: Aplicar filtros de consulta (status, data_inicio, data_fim)
+        filterset = ConsultaFilter(request.query_params, queryset=consultas)
+        if filterset.is_valid():
+            consultas = filterset.qs
+
         page = self.paginate_queryset(consultas)
         if page is not None:
             serializer = ConsultaSerializer(page, many=True)

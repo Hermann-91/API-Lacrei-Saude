@@ -36,6 +36,7 @@ class ConsultaViewSet(viewsets.ModelViewSet):
     ViewSet para CRUD completo de Consultas Médicas.
 
     Inclui prevenção de N+1 via select_related e soft-delete alterando o status para cancelada.
+    Bloqueia cancelamento de consultas já realizadas ou já canceladas.
     """
 
     serializer_class = ConsultaSerializer
@@ -52,6 +53,19 @@ class ConsultaViewSet(viewsets.ModelViewSet):
     def destroy(self, request: Request, *args, **kwargs) -> Response:
         """Cancela a consulta alterando o status para 'cancelada' (soft-delete)."""
         consulta = self.get_object()
+
+        # A2: Bloquear cancelamento de consultas já realizadas ou canceladas
+        if consulta.status == StatusConsulta.REALIZADA:
+            return Response(
+                {"erro": True, "mensagem": "Não é possível cancelar uma consulta já realizada."},
+                status=status.HTTP_409_CONFLICT,
+            )
+        if consulta.status == StatusConsulta.CANCELADA:
+            return Response(
+                {"erro": True, "mensagem": "Esta consulta já está cancelada."},
+                status=status.HTTP_409_CONFLICT,
+            )
+
         consulta.status = StatusConsulta.CANCELADA
         consulta.save(update_fields=["status", "atualizado_em"])
         logger.info("Consulta cancelada (soft-delete): %s", consulta.id)

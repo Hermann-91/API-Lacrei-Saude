@@ -11,3 +11,5 @@ class ConsultaAdmin(admin.ModelAdmin):
     list_filter = ["status", "data_hora"]
     search_fields = ["profissional__nome_social"]
     readonly_fields = ["id", "criado_em", "atualizado_em"]
+    list_select_related = ["profissional"]
+    autocomplete_fields = ["profissional"]

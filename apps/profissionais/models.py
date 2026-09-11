@@ -4,11 +4,17 @@ import uuid
 
 from django.db import models
 
+from core.models import SoftDeleteModel
 
-class Profissional(models.Model):
+
+class Profissional(SoftDeleteModel):
     """
     Representa um profissional da saúde cadastrado na plataforma.
-    Utiliza UUID como PK e soft-delete via campo 'ativo'.
+    Herda de SoftDeleteModel para soft-delete seguro a nível de ORM.
+
+    Managers:
+        - Profissional.objects → apenas profissionais ativos
+        - Profissional.all_objects → todos (incluindo inativos)
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -17,7 +23,6 @@ class Profissional(models.Model):
     endereco = models.CharField("Endereço", max_length=500)
     contato_telefone = models.CharField("Telefone", max_length=20)
     contato_email = models.EmailField("E-mail")
-    ativo = models.BooleanField("Ativo", default=True, db_index=True)
     criado_em = models.DateTimeField("Criado em", auto_now_add=True, db_index=True)
     atualizado_em = models.DateTimeField("Atualizado em", auto_now=True)
 

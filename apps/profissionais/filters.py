@@ -13,4 +13,4 @@ class ProfissionalFilter(django_filters.FilterSet):
 
     class Meta:
         model = Profissional
-        fields = ["nome_social", "profissao", "ativo"]
+        fields = ["nome_social", "profissao"]

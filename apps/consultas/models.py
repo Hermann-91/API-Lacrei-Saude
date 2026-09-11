@@ -50,3 +50,13 @@ class Consulta(models.Model):
 
     def __str__(self) -> str:
         return f"Consulta {self.id} - {self.profissional.nome_social} em {self.data_hora}"
+
+    def delete(self, using=None, keep_parents=False):
+        """Soft-delete da consulta alterando status para cancelada."""
+        self.status = StatusConsulta.CANCELADA
+        self.save(update_fields=["status", "atualizado_em"])
+        return 1, {self._meta.label: 1}
+
+    def hard_delete(self, using=None, keep_parents=False):
+        """Deleção física no banco de dados."""
+        return super().delete(using=using, keep_parents=keep_parents)
