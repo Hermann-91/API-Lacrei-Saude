@@ -24,7 +24,7 @@ def usuario_ativo():
     return User.objects.create_user(
         username="dra_claudia",
         email="claudia@lacreisaude.com.br",
-        password="SenhaSegura123!@#",  # noqa: S106
+        password="SenhaSegura123!@#",
     )
 
 
@@ -34,7 +34,7 @@ def usuario_inativo():
     user = User.objects.create_user(
         username="usuario_inativo",
         email="inativo@lacreisaude.com.br",
-        password="SenhaSegura123!@#",  # noqa: S106
+        password="SenhaSegura123!@#",
     )
     user.is_active = False
     user.save(update_fields=["is_active"])
@@ -69,13 +69,13 @@ def test_obter_token_jwt_credenciais_validas(api_client, usuario_ativo):
     access_token_str = response.data["access"]
     access_token = AccessToken(access_token_str)
     assert str(access_token["user_id"]) == str(usuario_ativo.id)
-    assert access_token["token_type"] == "access"  # noqa: S105
+    assert access_token["token_type"] == "access"
 
     # Decodifica e valida o refresh token
     refresh_token_str = response.data["refresh"]
     refresh_token = RefreshToken(refresh_token_str)
     assert str(refresh_token["user_id"]) == str(usuario_ativo.id)
-    assert refresh_token["token_type"] == "refresh"  # noqa: S105
+    assert refresh_token["token_type"] == "refresh"
 
 
 @pytest.mark.django_db

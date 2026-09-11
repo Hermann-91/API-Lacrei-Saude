@@ -38,7 +38,7 @@ class JornadaClinicaE2ETestCase(APITestCase):
     def setUp(self) -> None:
         """Inicializa o ambiente de teste com usuário para autenticação JWT."""
         self.username = "gestor_clinica"
-        self.password = "SenhaForteLacrei2026!#"  # noqa: S105
+        self.password = "SenhaForteLacrei2026!#"
         self.user = User.objects.create_user(
             username=self.username,
             email="gestor@lacreisaude.com.br",
@@ -425,3 +425,60 @@ class JornadaClinicaE2ETestCase(APITestCase):
         self.assertEqual(len(response.data["results"]), 8)
         for item in response.data["results"]:
             self.assertEqual(item["profissional_nome"], "Dr. Marcelo Rezende")
+
+    def test_soft_delete_e_hard_delete_consulta_e_profissional_orm(self) -> None:
+        """
+        Valida que:
+        1. Consulta.delete() realiza soft-delete alterando status para StatusConsulta.CANCELADA.
+        2. Consulta.hard_delete() remove fisicamente a consulta do banco de dados.
+        3. Profissional.soft_delete() inativa diretamente mesmo com consultas vinculadas.
+        4. SoftDeleteQuerySet.soft_delete() inativa em lote diretamente.
+        """
+        prof = Profissional.objects.create(
+            nome_social="Dra. Tatiana Mendes",
+            profissao="Ginecologista",
+            endereco="Rua Oscar Freire, 300",
+            contato_telefone="(11) 94444-5555",
+            contato_email="tatiana@lacreisaude.com.br",
+            ativo=True,
+        )
+        consulta = Consulta.objects.create(
+            profissional=prof,
+            data_hora=timezone.now() + timedelta(days=5),
+            status=StatusConsulta.AGENDADA,
+            observacoes="Consulta para teste de soft-delete.",
+        )
+
+        # 1. Soft-delete da consulta via ORM
+        consulta.delete()
+        consulta.refresh_from_db()
+        self.assertEqual(consulta.status, StatusConsulta.CANCELADA)
+        self.assertTrue(Consulta.objects.filter(id=consulta.id).exists())
+
+        # 2. Hard-delete da consulta via ORM
+        consulta.hard_delete()
+        self.assertFalse(Consulta.objects.filter(id=consulta.id).exists())
+
+        # 3. Recriar consulta e testar soft_delete explícito de profissional com consulta vinculada
+        nova_consulta = Consulta.objects.create(
+            profissional=prof,
+            data_hora=timezone.now() + timedelta(days=6),
+            status=StatusConsulta.AGENDADA,
+        )
+        prof.soft_delete()
+        prof.refresh_from_db()
+        self.assertFalse(prof.ativo)
+        self.assertTrue(Consulta.objects.filter(id=nova_consulta.id).exists())
+
+        # 4. Soft-delete em lote via queryset
+        prof2 = Profissional.objects.create(
+            nome_social="Dr. Bruno Lima",
+            profissao="Cardiologista",
+            endereco="Av. Paulista, 100",
+            contato_telefone="(11) 95555-6666",
+            contato_email="bruno@lacreisaude.com.br",
+            ativo=True,
+        )
+        Profissional.objects.filter(id=prof2.id).soft_delete()
+        prof2_db = Profissional.objects.get(id=prof2.id)
+        self.assertFalse(prof2_db.ativo)

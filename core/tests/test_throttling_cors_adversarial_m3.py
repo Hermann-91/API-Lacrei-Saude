@@ -46,7 +46,7 @@ def usuario_adversarial_1():
     return User.objects.create_user(
         username="adv_user_1",
         email="adv1@lacreisaude.com.br",
-        password="SenhaSegura123!@#",  # noqa: S106
+        password="SenhaSegura123!@#",
     )
 
 
@@ -56,7 +56,7 @@ def usuario_adversarial_2():
     return User.objects.create_user(
         username="adv_user_2",
         email="adv2@lacreisaude.com.br",
-        password="SenhaSegura123!@#",  # noqa: S106
+        password="SenhaSegura123!@#",
     )
 
 

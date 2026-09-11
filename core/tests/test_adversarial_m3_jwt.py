@@ -38,7 +38,7 @@ def usuario_adversarial():
     return User.objects.create_user(
         username="hacker_adversarial",
         email="adversarial@lacreisaude.com.br",
-        password="SenhaForteAdversarial123!#",  # noqa: S106
+        password="SenhaForteAdversarial123!#",
     )
 
 
@@ -400,7 +400,7 @@ def test_adversarial_usuario_inativo_nao_obtem_token(client_anonimo):
     """
     user = User.objects.create_user(
         username="inativo_direto",
-        password="SenhaSegura123!",  # noqa: S106
+        password="SenhaSegura123!",
         is_active=False,
     )
     payload = {"username": user.username, "password": "SenhaSegura123!"}

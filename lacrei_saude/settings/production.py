@@ -39,3 +39,9 @@ REST_FRAMEWORK = {
         "user": "30/minute",
     },
 }
+
+# A5: Corrigir nível de logging em produção (base.py define DEBUG para apps)
+LOGGING["loggers"]["apps"]["level"] = "INFO"  # noqa: F405
+
+# A8: Reutilizar conexões com o PostgreSQL (evitar overhead de TCP por request)
+DATABASES["default"]["CONN_MAX_AGE"] = 60  # noqa: F405

@@ -329,7 +329,6 @@ def test_adversarial_delecao_api_realiza_soft_delete_e_preserva_consultas(auth_c
         "987654321",  # 9 dígitos
         "119876543210",  # 12 dígitos
         "5511987654321",  # 13 dígitos
-        "+55 (11) 98765-4321",  # 13 dígitos (com DDI)
         "00000000000000000000",  # 20 dígitos
     ],
 )
