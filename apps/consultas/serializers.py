@@ -4,14 +4,21 @@ import bleach
 from django.utils import timezone
 from rest_framework import serializers
 
+from apps.profissionais.models import Profissional
+
 from .models import Consulta
 
 
 class ConsultaSerializer(serializers.ModelSerializer):
     """
-    Serializer da Consulta com validação de data, profissional ativo e sanitização.
+    Serializer da Consulta com validação de data, profissional ativo,
+    controle de status na criação e sanitização.
     """
 
+    profissional = serializers.PrimaryKeyRelatedField(
+        queryset=Profissional.all_objects.all(),
+        help_text="Profissional vinculado à consulta.",
+    )
     profissional_nome = serializers.CharField(source="profissional.nome_social", read_only=True)
 
     class Meta:
@@ -44,4 +51,12 @@ class ConsultaSerializer(serializers.ModelSerializer):
         """Valida que o profissional está ativo."""
         if not value.ativo:
             raise serializers.ValidationError("Não é possível agendar consulta com profissional inativo.")
+        return value
+
+    def validate_status(self, value):
+        """Na criação, força status 'agendada'. Na atualização, permite transições."""
+        if self.instance is None and value != "agendada":
+            raise serializers.ValidationError(
+                "Uma nova consulta deve ser criada com status 'agendada'."
+            )
         return value

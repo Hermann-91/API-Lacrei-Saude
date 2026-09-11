@@ -21,6 +21,25 @@ def test_profissional_serializer_valido():
 
     assert instance.nome_social == "Dra. Ana Paula"
     assert instance.ativo is True
+    assert serializer.data["ativo"] is True
+
+
+@pytest.mark.django_db
+def test_profissional_serializer_campo_ativo_somente_leitura():
+    """Garante que o campo 'ativo' é somente leitura e não pode ser sobrescrito pelo cliente."""
+    data = {
+        "nome_social": "Dr. Roberto",
+        "profissao": "Clínico Geral",
+        "endereco": "Rua B, 20",
+        "contato_telefone": "+55 (11) 98765-4321",
+        "contato_email": "roberto@exemplo.com",
+        "ativo": False,
+    }
+    serializer = ProfissionalSerializer(data=data)
+    assert serializer.is_valid(), serializer.errors
+    instance = serializer.save()
+    assert instance.ativo is True
+    assert serializer.data["ativo"] is True
 
 
 @pytest.mark.django_db
@@ -81,6 +100,8 @@ def test_profissional_serializer_rejeita_nome_somente_tags():
         "(11) 3456-7890",
         "11987654321",
         "1134567890",
+        "+55 (11) 98765-4321",
+        "(55) 98765-4321",
     ],
 )
 def test_profissional_serializer_telefones_validos(telefone_valido):
