@@ -46,9 +46,7 @@ class ProfissionalSerializer(serializers.ModelSerializer):
         digits = re.sub(r"\D", "", value)
         if value.startswith("+"):
             if not digits.startswith("55"):
-                raise serializers.ValidationError(
-                    "Apenas números de telefone do Brasil (+55) são aceitos."
-                )
+                raise serializers.ValidationError("Apenas números de telefone do Brasil (+55) são aceitos.")
             digits = digits[2:]
         if len(digits) not in (10, 11):
             raise serializers.ValidationError(

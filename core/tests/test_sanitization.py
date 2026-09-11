@@ -121,4 +121,3 @@ def test_sanitization_middleware_preserva_campos_password_em_form_data():
     assert request.POST["nome"] == "Admin alert(1)"
     assert request.POST["password"] == "Senha<Complexa>&123!#="
     assert request.POST["senha"] == "Outra<Senha>&99"
-

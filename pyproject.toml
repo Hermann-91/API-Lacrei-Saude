@@ -58,8 +58,8 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "*/migrations/*" = ["E501"]  # Migrações geradas pelo Django podem ter linhas longas
-"*/tests/*" = ["S101", "S106"]  # Permitir assert e senhas hardcoded em testes
-"conftest.py" = ["S101", "S106"]
+"*/tests/*" = ["S101", "S105", "S106", "S107"]  # Permitir assert e dados de autenticação em testes
+"conftest.py" = ["S101", "S105", "S106", "S107"]
 
 
 [tool.ruff.lint.isort]

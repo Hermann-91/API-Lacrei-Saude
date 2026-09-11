@@ -453,8 +453,7 @@ def test_adversarial_action_consultas_comportamento_de_filtros_e_404(auth_client
     Teste adversarial confirmando o comportamento dos filtros na action /profissionais/{id}/consultas/:
     1. Passar um filtro que não combina com o profissional (ex: search='Cardio' para uma 'Dermatologista')
        provoca 404 Not Found porque self.get_object() filtra o Profissional via filterset_class.
-    2. Passar filtro de status de consulta (?status=cancelada) é IGNORADO pela action,
-       pois ela não aplica ConsultaFilter no queryset de consultas.
+    2. Passar filtro de status de consulta (?status=cancelada) é APLICADO com sucesso via ConsultaFilter.
     """
     prof = Profissional.objects.create(
         nome_social="Dra. Camila Dermatologista",
@@ -476,10 +475,11 @@ def test_adversarial_action_consultas_comportamento_de_filtros_e_404(auth_client
         observacoes="Consulta cancelada pelo paciente",
     )
 
-    # Prova 1: Filtro de consulta (?status=cancelada) é ignorado e retorna ambas as consultas
+    # Validação: Filtro de consulta (?status=cancelada) agora filtra corretamente
     res_status = auth_client.get(f"/api/v1/profissionais/{prof.id}/consultas/?status=cancelada")
     assert res_status.status_code == status.HTTP_200_OK
-    assert res_status.data["count"] == 2  # Não filtrou!
+    assert res_status.data["count"] == 1
+    assert res_status.data["results"][0]["status"] == StatusConsulta.CANCELADA
 
     # Prova 2: Filtro de busca incompatível com o profissional causa 404 inesperado
     res_404 = auth_client.get(f"/api/v1/profissionais/{prof.id}/consultas/?search=Cardiologista")

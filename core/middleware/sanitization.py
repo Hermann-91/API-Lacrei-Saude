@@ -31,19 +31,21 @@ AUTH_PATH_PREFIXES: tuple[str, ...] = (
 )
 
 # Campos de credenciais que nunca devem sofrer mutação
-SENSITIVE_FIELD_NAMES: frozenset[str] = frozenset({
-    "password",
-    "old_password",
-    "new_password",
-    "confirm_password",
-    "current_password",
-    "senha",
-    "confirma_senha",
-    "token",
-    "refresh",
-    "access",
-    "secret",
-})
+SENSITIVE_FIELD_NAMES: frozenset[str] = frozenset(
+    {
+        "password",
+        "old_password",
+        "new_password",
+        "confirm_password",
+        "current_password",
+        "senha",
+        "confirma_senha",
+        "token",
+        "refresh",
+        "access",
+        "secret",
+    }
+)
 
 
 class SanitizationMiddleware:
@@ -100,9 +102,7 @@ class SanitizationMiddleware:
             return value
 
         if isinstance(value, str):
-            sanitized = bleach.clean(
-                value, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES, strip=True
-            )
+            sanitized = bleach.clean(value, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES, strip=True)
             if sanitized != value:
                 logger.warning("Input sanitizado: '%s' -> '%s'", value[:100], sanitized[:100])
             return sanitized

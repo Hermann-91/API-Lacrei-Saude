@@ -56,7 +56,5 @@ class ConsultaSerializer(serializers.ModelSerializer):
     def validate_status(self, value):
         """Na criação, força status 'agendada'. Na atualização, permite transições."""
         if self.instance is None and value != "agendada":
-            raise serializers.ValidationError(
-                "Uma nova consulta deve ser criada com status 'agendada'."
-            )
+            raise serializers.ValidationError("Uma nova consulta deve ser criada com status 'agendada'.")
         return value
